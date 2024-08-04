@@ -1,4 +1,4 @@
-# 如何寫你的第一個Golang程式
+# 第一個Golang程式
 by [@chimerakang](https://github.com/chimerakang)
 
 ---
@@ -196,7 +196,7 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"strings"    
 )
 
 func main() {

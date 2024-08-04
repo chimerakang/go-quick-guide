@@ -1,55 +1,63 @@
 package main
 
-import "fmt"
-import "math"
-
-type Shape interface {
-	Area() float64
-}
-
-func Area(s Shape) float64 {
-	return s.Area()
-}
-
-// main
-func main() {
-	r := Rect{Point{0, 0}, Point{3, 4}}
-	c := Circle{Point{2, 2}, 1}
-
-	// Rect satisfies Shape interface, so we can pass r to Area
-	// but no type dependency between Rect and Shape
-	fmt.Println(Area(r))
-
-	// *Shape satisfies Shape interface
-	fmt.Println(Area(&c))
-}
-
-type Point struct {
-	X float64
-	Y float64
-}
-
-type Rect struct {
-	LeftTop  Point
-	RightBot Point
-}
-
-func (r Rect) Area() float64 {
-	width := r.RightBot.X - r.LeftTop.X
-	height := r.RightBot.Y - r.LeftTop.Y
-	if width < 0 || height < 0 {
-		panic(fmt.Sprintf("invalid Rect %v", r))
-	}
-	return width * height
-}
+import (
+	"fmt"
+	"math"
+)
 
 type Circle struct {
-	Center Point
 	Radius float64
 }
 
-func (c *Circle) Area() float64 {
-	return math.Pi * c.Radius * c.Radius
+func (c Circle) Area() float64 {
+	return math.Pi * math.Pow(c.Radius, 2)
 }
 
+func (c Circle) String() string {
+	return fmt.Sprintf("Circle {Radius: %.2f}", c.Radius)
+}
 
+type Square struct {
+	Width  float64
+	Height float64
+}
+
+func (s Square) Area() float64 {
+	return s.Width * s.Height
+}
+
+func (s Square) String() string {
+	return fmt.Sprintf("Square {Width: %.2f, Height: %.2f}", s.Width, s.Height)
+}
+
+type Sizer interface {
+	Area() float64
+}
+
+type Shaper interface {
+	Sizer
+	fmt.Stringer
+}
+
+func main() {
+	c := Circle{Radius: 10}
+	PrintArea(c)
+
+	s := Square{Height: 10, Width: 5}
+	PrintArea(s)
+
+	l := Less(c, s)
+	fmt.Printf("%v is the smallest\n", l)
+
+}
+
+func Less(s1, s2 Sizer) Sizer {
+	if s1.Area() < s2.Area() {
+		return s1
+	}
+	return s2
+}
+
+func PrintArea(s Shaper) {
+	fmt.Printf("area of %s is %.2f\n", s.String(), s.Area())
+}

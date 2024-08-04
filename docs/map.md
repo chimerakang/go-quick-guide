@@ -247,7 +247,10 @@ func main() {
     studentsAge["bob"] = 31
 
     for name := range studentsAge {
-        fmt.Printf("Names %s\n", name)
+        if name == "xxx" {
+            fmt.Printf("Names %s\n", name)
+            break
+        }
     }
 }
 ```

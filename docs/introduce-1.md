@@ -2,7 +2,6 @@
 
 by [@chimerakang](https://github.com/chimerakang)
 
-
 ---
 ## 內容概要
 
@@ -10,13 +9,13 @@ by [@chimerakang](https://github.com/chimerakang)
 * 基本類型
 * 控制結構
 * 函數func
-* 協程goroutine
+* [協程goroutine](./goroutine.md)
 * 管道channel
-* 套件package
+* [套件package](./package.md)
 * 複合類型
 * 結構struct
 * 方法method
-* 介面interface
+* [介面interface](./interface.md)
 * [流程控制](./flow-1.md)
 
 ---
