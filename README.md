@@ -58,7 +58,7 @@
 * 方法method
 * 介面interface
 
-[詳細內容](docs/README.md)
+[詳細內容](docs/first-go.md)
 
 ---
 
