@@ -97,7 +97,7 @@ total 4048
 ---
 ## Next
 
-[入門-1](./introduce-1.md)
+[Golang整體介紹](./introduce-1.md)
 
 ---
 

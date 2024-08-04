@@ -17,6 +17,7 @@ by [@chimerakang](https://github.com/chimerakang)
 * 結構struct
 * 方法method
 * 介面interface
+* [流程控制](./flow-1.md)
 
 ---
 
@@ -241,6 +242,7 @@ demo: [producer-consumer.go](https://github.com/chimerakang/go-quick-guide/demos
 	* range based for
 	* `for i, v := range a { /* ... */ }`
 
+[詳細介紹陣列](./array.md)
 demo: [arrays.go](https://github.com/chimerakang/go-quick-guide/demos/arrays/arrays.go)
 
 ---
@@ -284,6 +286,7 @@ Q2 := months[4:7]
 summer := months[6:9]
 ```
 
+[詳細介紹slice](./slice.md)
 demo: 
 [slices.go](https://github.com/chimerakang/go-quick-guide/demos/slices/slices.go) 
 [slice-as-args.go](https://github.com/chimerakang/go-quick-guide/demos/slice-as-args/slice-as-args.go)
@@ -401,6 +404,10 @@ any = "hello"
 any = new(bytes.Buffer)
 any = map[string]int{"one": 1}
 ```
+
+## 流程控制
+[流程控制1](./flow-1.md)
+
 ---
 ## Next
 [入門-2](./introduce-2.md)
