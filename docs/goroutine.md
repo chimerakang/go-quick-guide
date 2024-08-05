@@ -19,15 +19,15 @@ Goroutine 提供的強大功能是每個 Goroutine 可以同時在一個處理�
 
 ![](./images/goroutine-1.png)
 
-此圖分為兩列，標示為「併發」和「併行性」。併發列有一個高矩形，標記為 CPU 核心，分為不同顏色的堆疊部分，表示不同的功能。並行度列有兩個類似的高矩形，都標記為 CPU 核心，每個堆疊部分錶示不同的功能，只不過它只顯示 goroutine1 運行在左側核心上，goroutine2 運行在右側核心上。
+此圖分為兩列，標示為「併發」和「平行性」。併發列有一個高矩形，標記為 CPU 核心，分為不同顏色的堆疊部分，表示不同的功能。並行度列有兩個類似的高矩形，都標記為 CPU 核心，每個堆疊部分錶示不同的功能，只不過它只顯示 goroutine1 運行在左側核心上，goroutine2 運行在右側核心上。
 
 圖中的左欄標記為「CONCURRENCY 併發」，顯示了圍繞併發設計的程式如何通過運行部分goroutine1，然後運行另一個函數、goroutine 或程序，然後運行goroutine2，然後goroutine1再次運行，從而在單個 CPU 核心上運行。對於用戶來說，這看起來就像程式正在同時運行所有函數或 goroutine，即使它們實際上是一個接一個地以小部分運行。
 
-該圖右側標記為「PARALLELISM 併行性」的列顯示了相同的程式如何在具有兩個 CPU 核心的處理器上並行運行。第一個 CPU 核心顯示goroutine1與其他函數、goroutine 或程式一起運行，而第二個 CPU 核心顯示goroutine2在該核心上與其他函數或 goroutine 一起運行。有時，兩者同時運行，只是在不同的 CPU 核心上運行goroutine1。goroutine2
+該圖右側標記為「PARALLELISM 平行性」的列顯示了相同的程式如何在具有兩個 CPU 核心的處理器上平行運行。第一個 CPU 核心顯示goroutine1與其他函數、goroutine 或程式一起運行，而第二個 CPU 核心顯示goroutine2在該核心上與其他函數或 goroutine 一起運行。有時，兩者同時運行，只是在不同的 CPU 核心上運行goroutine1。goroutine2
 
 該圖還顯示了 Go 的另一個強大特性：可擴展性。當程式可以在從具有幾個處理器核心的小型電腦到具有數十個核心的大型伺服器的任何設備上運行並利用這些額外資源時，該程式就是可擴展的。該圖顯示，透過使用 goroutine，您的併發程式能夠在單一 CPU 核心上運行，但隨著添加更多 CPU 核心，可以並行運行更多 goroutine 以加快程式速度。
 
-若要開始使用新的併發程序，請multifunc在您選擇的位置建立目錄。您可能已經有一個專案目錄，但在本教學中，您將建立一個名為 的目錄projects。您可以projects透過 IDE 或命令列建立該目錄。
+若要開始使用新的併發程序，請在您選擇的位置建立目錄。您可能已經有一個專案目錄，但在本教學中，您將建立一個名為 的目錄projects。您可以projects透過 IDE 或命令列建立該目錄。
 
 如果您使用命令列，請先建立projects目錄並導航到該目錄：
 ```
@@ -88,7 +88,7 @@ Generating number 3
 
 要等待函數完成，您將使用WaitGroupGo 的sync套件。該sync套件包含“同步原語”，例如WaitGroup，旨在同步程式的各個部分。在您的情況下，同步會追蹤兩個函數何時完成運行，以便您可以退出程式。
 
-此原語的工作原理是使用、和函數WaitGroup計算需要等待的事物數量。此函數將計數增加提供給函數的數字，並將計數減少 1。然後，該函數可用於等待，直到計數達到零，這表示該函數已被呼叫足夠多次以抵消對 的呼叫。一旦計數達到零，函數將返回並且程式將繼續運行。AddDoneWaitAddDoneWaitDoneAddWait
+此原語的工作原理是使用、和函數WaitGroup計算需要等待的事物數量。此函數將計數增加提供給函數的數字，並將計數減少 1。然後，該函數可用於等待，直到計數達到零，這表示該函數已被呼叫足夠多次以抵消對 的呼叫。一旦計數達到零，函數將返回並且程式將繼續運行。
 
 接下來，更新檔案中的程式碼main.go以使用關鍵字將兩個函數作為 goroutine 運行go，並將 a 添加sync.WaitGroup到程式中：
 
@@ -203,7 +203,7 @@ func writeChannel(ch chan<- int) {
 
 最後，一旦不再使用某個通道，就可以使用內建close()函數將其關閉。此步驟至關重要，因為當創建通道然後在程式中多次閒置時，可能會導致所謂的記憶體洩漏。記憶體洩漏是指程式創建的內容耗盡了電腦上的內存，但在使用完畢後卻沒有將該內存釋放回電腦。這會導致程式隨著時間的推移慢慢（或有時不那麼慢）使用更多內存，就像漏水一樣。當使用 建立通道 時make()，電腦的一些記憶體將用於該通道，然後close()在通道上呼叫 時，該記憶體將返回給電腦以用於其他用途。
 
-現在，更新main.go程式中的檔案以使用chan int通道在 goroutine 之間進行通訊。該generateNumbers函數將產生數字並將其寫入通道，同時該printNumbers函數將從通道讀取這些數字並將其列印到螢幕上。在該main函數中，您將建立一個新通道作為參數傳遞給每個其他函數，然後使用close()該通道來關閉它，因為它將不再被使用。該generateNumbers函數也不應該再是一個 goroutine，因為一旦該函數運行完畢，程式將完成產生它需要的所有數字。這樣，close()僅在兩個函數完成運行之前在通道上呼叫該函數。
+現在，更新main.go程式中的檔案以使用 `numberChan` 擔任在 goroutine 之間進行通訊。該generateNumbers函數將產生數字並將其寫入通道，同時該printNumbers函數將從通道讀取這些數字並將其列印到螢幕上。在該main函數中，您將建立一個新通道作為參數傳遞給每個其他函數，然後使用close()該通道來關閉它，因為它將不再被使用。該generateNumbers函數也不應該再是一個 goroutine，因為一旦該函數運行完畢，程式將完成產生它需要的所有數字。這樣，close()僅在兩個函數完成運行之前在通道上呼叫該函數。
 
 ```go
 package main
@@ -246,11 +246,11 @@ func main() {
 	fmt.Println("Done!")
 }
 ```
-generateNumbers在和的參數中printNumbers，您將看到chan類型使用唯讀和唯寫類型。由於generateNumbers只需要能夠向通道寫入數字，因此它是一種只寫類型，箭頭<-指向通道。printNumbers只需要能夠從通道讀取數字，因此它是唯讀類型，箭頭<-指向遠離通道的方向。
+generateNumbers在和的參數中printNumbers，您將看到chan類型使用唯讀和唯寫類型。由於generateNumbers只需要能夠向通道寫入數字，因此它是一種只寫類型，箭頭<-指向Channel。printNumbers只需要能夠從Channel讀取數字，因此它是唯讀類型，箭頭<-指向遠離Channel的方向。
 
 儘管這些類型可能是 a chan int，它允許讀取和寫入，但將它們限制為僅函數需要的類型會很有幫助，以避免意外導致程式因死鎖而停止運行。當程式的一個部分正在等待程式的另一部分執行某些操作，但程式的另一部分也在等待程式的第一部分完成時，可能會發生死鎖。由於程式的兩個部分都在互相等待，因此程式將永遠不會繼續運行，就像兩個齒輪卡住一樣。
 
-由於 Go 中通道通訊的工作方式，可能會發生死鎖。當程式的一部分正在寫入通道時，它將等到程式的另一部分從該通道讀取資料後再繼續。類似地，如果程式正在從通道讀取數據，它將等到程式的另一部分寫入該通道後才繼續。等待其他事情發生的程式的一部分被稱為阻塞，因為在其他事情發生之前它被阻止繼續運行。通道在寫入或讀取時會阻塞。因此，如果您有一個函數，您希望寫入通道，但意外地從通道讀取數據，則您的程式可能會陷入死鎖，因為通道永遠不會被寫入。確保這種情況永遠不會發生是使用 achan<- int或 a<-chan int而不僅僅是 a 的原因之一chan int。
+由於 Go 中 Channel 通訊的工作方式，可能會發生死鎖。當程式的一部分正在寫入 Channel 時，它將等到程式的另一部分從該 Channel 讀取資料後再繼續。類似地，如果程式正在從 Channel 讀取數據，它將等到程式的另一部分寫入該 Channel 後才繼續。等待其他事情發生的程式的一部分被稱為阻塞，因為在其他事情發生之前它被阻止繼續運行。通道在寫入或讀取時會阻塞。因此，如果您有一個函數，您希望寫入 Channel，但意外地從 Channel 讀取數據，則您的程式可能會陷入死鎖，因為 Channel 永遠不會被寫入。確保這種情況永遠不會發生是使用 achan<- int或 a<-chan int而不僅僅是 a 的原因之一chan int。
 
 更新後的程式碼的另一個重要方面是close()在完成寫入後用於關閉通道generateNumbers。在此程序中， close()導致for ... range循環printNumbers退出。由於使用range從通道讀取的操作會持續到其讀取的通道關閉為止，因此如果close不調用，numberChan則printNumbers永遠不會完成。如果printNumbersnever 完成，則退出時永遠不會呼叫WaitGroup的方法。如果該方法從未被 from 調用，則程式本身將永遠不會退出，因為函數中的s方法將永遠不會繼續。這是死鎖的另一個例子，因為函數正在等待永遠不會發生的事情。
 
@@ -310,7 +310,7 @@ func main() {
 	fmt.Println("Done!")
 }
 ```
-更新後，您可以使用withmain.go再次運行您的程式。在繼續產生數字之前，您的程式應該啟動三個goroutine。您的程式現在還應該產生五個數字而不是三個，以便更容易看到數字分佈在三個goroutine 中：go runmain.goprintNumbersprintNumbers
+更新後，您可以再次運行您的程式。在繼續產生數字之前，您的程式應該啟動三個goroutine。您的程式現在還應該產生五個數字而不是三個，以便更容易看到數字分佈在三個goroutine 中
 ```
 go run main.go
 ```
@@ -337,45 +337,6 @@ Done!
 使用 goroutine 和通道的組合可以創建非常強大的程序，能夠從小型桌上型電腦上運行擴展到大型伺服器。正如您在本節中看到的，通道可用於在少至幾個 Goroutine 到潛在數千個 Goroutine 之間進行通信，只需進行最小的更改。如果您在編寫程式時考慮到這一點，您將能夠利用 Go 中可用的併發性為使用者提供更好的整體體驗。
 
 ---
-## Channel 與 Select
-Channel 有一個類似 Switch 的流程控制「Select」，它只能應用於 Channel 讓我們一起來看看。
-
-```go
-package main
-
-import "time"
-import "fmt"
-
-func main() {
-
-  c1 := make(chan string)
-  c2 := make(chan string)
-
-  go func() {
-    time.Sleep(time.Second * 1)
-    c1 <- "one"
-  }()
-  go func() {
-    time.Sleep(time.Second * 2)
-    c2 <- "two"
-  }()
-
-  for i := 0; i < 2; i++ {
-    select {
-    case msg1 := <-c1:
-      fmt.Println("received", msg1)
-    case msg2 := <-c2:
-      fmt.Println("received", msg2)
-    }
-  }
-}
-```
-這邊用 go 建立兩個 goroutine 分別將 one 和 two 傳給 c1、c2，下面主函式的 for 回會將 1、2 透過 select 流程控制來接收 channel 的訊息再印出。
-
-這樣子就可以更有效的控制 channel 了。
-
-
----
 ## Sleep
 讓程式暫停。
 
@@ -398,30 +359,37 @@ time.Sleep(5 * time.Millisecond)
 package main
 
 import (
-  "fmt"
-  "sync"
-  "time"
+	"fmt"
+	"sync"
+	"time"
 )
 
 func withdraw() {
-  balance := money
-  time.Sleep(3000 * time.Millisecond)
-  balance -= 1000
-  money = balance
-  fmt.Println("After withdrawing $1000, balace: ", money)
-  wg.Done()
+	balance := money
+	time.Sleep(3000 * time.Millisecond)
+	balance -= 1000
+	money = balance
+	fmt.Println("After withdrawing $1000, balace: ", money)
+	wg.Done()
 }
 
 var wg sync.WaitGroup
 var money int = 1500
 
 func main() {
-  fmt.Println("We have $1500")
-  wg.Add(2)
-  go withdraw() // first withdraw
-  go withdraw() // second withdraw
-  wg.Wait()
+	fmt.Println("We have $1500")
+	wg.Add(2)
+	go withdraw() // first withdraw
+	go withdraw() // second withdraw
+	wg.Wait()
 }
+```
+Output
+```
+$ go run race/race.go 
+We have $1500
+After withdrawing $1000, balace:  500
+After withdrawing $1000, balace:  500
 ```
 到最後大家會發現 1500 提領了兩次 1000 還剩 500？為甚麼呢？
 
@@ -430,7 +398,52 @@ func main() {
 不過 Golang 的編譯器可以檢查是不是有 race condition，只要在平常執行 go run 後面加上參數 -race 即可。
 
 ```
-go run -race main.go
+go run -race race/race.go
+```
+Output
+```
+$ go run -race race/race.go 
+We have $1500
+==================
+WARNING: DATA RACE
+Write at 0x0001401021a0 by goroutine 8:
+  main.withdraw()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:13 +0x50
+
+Previous read at 0x0001401021a0 by goroutine 7:
+  main.withdraw()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:10 +0x27
+
+Goroutine 8 (running) created at:
+  main.main()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:25 +0x9c
+
+Goroutine 7 (running) created at:
+  main.main()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:24 +0x90
+==================
+==================
+WARNING: DATA RACE
+Write at 0x0001401021a0 by goroutine 7:
+  main.withdraw()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:13 +0x50
+
+Previous read at 0x0001401021a0 by goroutine 8:
+  main.withdraw()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:14 +0x96
+
+Goroutine 7 (running) created at:
+  main.main()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:24 +0x90
+
+Goroutine 8 (running) created at:
+  main.main()
+      G:/GoProjects/src/go-quick-guide/demos/race/race.go:25 +0x9c
+==================
+After withdrawing $1000, balace:  500
+After withdrawing $1000, balace:  500
+Found 2 data race(s)
+exit status 66
 ```
 
 ---
@@ -522,9 +535,19 @@ func main() {
 }
 ```
 
+Output
+```
+$ go run mutex/mutex.go 
+We have $1500
+After withdrawing $1000, balace:  500
+After withdrawing $1000, balace:  -500
+```
 如此一來就解決 race condition 的問題了！
 
 
 ---
 ## 結論
 在本教程中，您使用go關鍵字建立了一個程式來啟動併發運行的 goroutine，這些 goroutine 在運行時會列印出數字。程式運行後，您可以int使用 建立一個新的值通道make(chan int)，然後使用該通道在一個 goroutine 中產生數字，並將它們發送到另一個 goroutine 以列印到螢幕上。最後，您同時啟動了多個「列印」goroutine，作為如何使用通道和 goroutine 來加速多核心電腦上的程式的範例。
+
+---
+[使用Channel](./channel.md)

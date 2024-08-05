@@ -10,7 +10,7 @@ by [@chimerakang](https://github.com/chimerakang)
 * 控制結構
 * 函數func
 * [協程goroutine](./goroutine.md)
-* 管道channel
+* [管道channel](./channel.md)
 * [套件package](./package.md)
 * 複合類型
 * 結構struct
