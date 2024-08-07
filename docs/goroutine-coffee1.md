@@ -494,5 +494,5 @@ $ go tool trace trace.out
 ![make coffee tasks](./images/trace8.png)
 
 ## 優化程式碼
-從上圖可以清楚看到每個沖泡環節所消耗的時間，請使用goroutine和channel優化這個程式，並利用`trace`的圖表檢查所消耗的時間縮短，改善整個執行效率
+從上圖可以清楚看到每個沖泡環節所消耗的時間，請使用goroutine和channel優化這個程式，並利用`trace`的圖表檢查修改後所消耗的時間是否縮短，改善整個執行效率
 
