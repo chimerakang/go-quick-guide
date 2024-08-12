@@ -551,4 +551,6 @@ After withdrawing $1000, balace:  -500
 
 ---
 [使用Channel](./channel.md)
+
+---
 [挑戰](./goroutine-coffee1.md)
