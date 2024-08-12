@@ -183,6 +183,7 @@ func main() {
 打開browser，訪問主頁，模板正常渲染，CSS 靜態檔案載入成功。
 ![](./images/static.png)
 
+
 ---
 ## Next
-[網頁-錯誤處理](./web-7.md)
+[網頁-表單](./web-8.md)

@@ -3,12 +3,14 @@ by [@chimerakang](https://github.com/chimerakang)
 
 ---
 ## 介紹
-由於Golang優秀的併發處理，很多公司使用Golang編寫微服務。 對於Golang來說，只需要短短幾行代碼就可以實現一個簡單的Http伺服器。 加上Golang的協程，這個伺服器可以擁有極高的性能。 然而，正是因為代碼過於簡單，我們才應該去研究他的底層實現，做到會用，也知道為什麼這麼用。
+由於Golang優秀的併發處理，很多公司使用Golang編寫微服務。 對於Golang來說，只需要短短幾行代碼就可以實現一個簡單的Http伺服器。 加上Golang的協程，這個伺服器可以擁有極高的性能。 然而，正是因為代碼過於簡單，我們才應該去研究他的底層實現，也才知道怎麼使用。
 
-在本文中，會以自頂向下的方式，從如何使用，到如何實現，一點點的分析Golang中net/HTTP這個包中關於Http伺服器的實現方式。
+[參考:Web工作方式](https://willh.gitbook.io/build-web-application-with-golang-zhtw/03.0/03.1)
+
+在本文中，會以自頂向下的方式，從如何使用，到如何實現，一點點的分析Golang中`net/HTTP`這個包中關於Http伺服器的實現方式。
 
 ## 標準函式庫啟動Web服務
-Go語言內建了net/http庫，封裝了HTTP網路程式設計的基礎的接口，我們實現的GeeWeb 框架是基於net/http的。我們接下來透過一個例子，簡單介紹下這個函式庫的使用。
+Go語言內建了net/http庫，封裝了HTTP網路程式設計的基礎的接口，我們實現的`GooWeb` 框架是基於`net/http`的。我們接下來透過一個例子，簡單介紹下這個函式庫的使用。
 
 ```go
 package main
@@ -62,7 +64,7 @@ type Handler interface {
     ServeHTTP(w ResponseWriter, r *Request) 
 }
 
-func  ListenAndServe (address string , h Handler)  error
+func ListenAndServe(address string , h Handler) error
 ```
 
 第二個參數的型別是什麼呢？透過查看`net/http`的源碼可以發現，`Handler`是一個接口，需要實現方法`ServeHTTP`，也就是說，只要傳入任何實現了`ServerHTTP`接口的實例，所有的HTTP請求，就都交給了該實例處理了。馬上來試試吧。
@@ -132,14 +134,6 @@ replace goo => ./goo
 
 package main
 
-// $ curl http://localhost:9999/
-// URL.Path = "/"
-// $ curl http://localhost:9999/hello
-// Header["Accept"] = ["*/*"]
-// Header["User-Agent"] = ["curl/7.54.0"]
-// curl http://localhost:9999/world
-// 404 NOT FOUND: /world
-
 import (
 	"fmt"
 	"net/http"
@@ -163,7 +157,7 @@ func main() {
 }
 
 ```
-看到這裡，使用New()建立goo 的實例，使用GET()方法新增路由，最後使用Run()啟動Web服務。這裡的路由，只是靜態路由，不支援/hello/:name這樣的動態路由，動態路由我們會在下次實作。
+看到這裡，使用New()建立`goo` 的實例，使用`GET()`方法新增路由，最後使用`Run()`啟動`Web`服務。這裡的路由，只是靜態路由，不支援`/hello/:name`這樣的動態路由，動態路由我們會在下次實作。
 
 ### goo.go
 
@@ -175,7 +169,7 @@ import (
 	"net/http"
 )
 
-// HandlerFunc defines the request handler used by gee
+// HandlerFunc defines the request handler used by goo
 type HandlerFunc func(http.ResponseWriter, *http.Request)
 
 // Engine implement the interface of ServeHTTP

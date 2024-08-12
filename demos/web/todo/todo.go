@@ -18,6 +18,28 @@ func FormatAsDate(t time.Time) string {
 	return fmt.Sprintf("%d-%02d-%02d", year, month, day)
 }
 
+func todoHandler(c *goo.Context) {
+	fmt.Println("method:", c.Method) //取得請求的方法
+	if c.Method == "GET" {
+		c.HTML(http.StatusOK, "todo.tmpl", nil)
+	} else {
+		//請求的是登入資料，那麼執行登入的邏輯判斷
+		fmt.Println("username:", c.PostForm("username"))
+		fmt.Println("password:", c.PostForm("password"))
+	}
+}
+
+func loginHandler(c *goo.Context) {
+	fmt.Println("method:", c.Method) //取得請求的方法
+	if c.Method == "GET" {
+		c.HTML(http.StatusOK, "login.tmpl", nil)
+	} else {
+		//請求的是登入資料，那麼執行登入的邏輯判斷
+		fmt.Println("username:", c.PostForm("username"))
+		fmt.Println("password:", c.PostForm("password"))
+	}
+}
+
 func main() {
 	r := goo.New()
 	r.Use(goo.Logger())
@@ -45,6 +67,12 @@ func main() {
 			"now":   time.Date(2019, 8, 17, 0, 0, 0, 0, time.UTC),
 		})
 	})
+
+	r.GET("/login", loginHandler)
+	r.POST("/login", loginHandler)
+
+	r.GET("/todo", todoHandler)
+	r.POST("/todo", todoHandler)
 
 	r.Run(":9999")
 }
