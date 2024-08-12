@@ -25,7 +25,7 @@ type (
 	}
 )
 
-// New is the constructor of gee.Engine
+// New is the constructor of goo.Engine
 func New() *Engine {
 	engine := &Engine{router: newRouter()}
 	engine.RouterGroup = &RouterGroup{engine: engine}

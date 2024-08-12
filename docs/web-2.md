@@ -165,7 +165,7 @@ type Engine struct {
 	router *router
 }
 
-// New is the constructor of gee.Engine
+// New is the constructor of goo.Engine
 func New() *Engine {
 	return &Engine{router: newRouter()}
 }
@@ -215,7 +215,7 @@ func main() {
 		c.HTML(http.StatusOK, "<h1>Hello Goo</h1>")
 	})
 	r.GET("/hello", func(c *goo.Context) {
-		// expect /hello?name=geektutu
+		// expect /hello?name=gootutu
 		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
 

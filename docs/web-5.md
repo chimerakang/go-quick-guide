@@ -152,8 +152,8 @@ func (r *router) handle(c *Context) {
 
 ### 測試
 ```
-func onlyForV2() gee.HandlerFunc {
-	return func(c *gee.Context) {
+func onlyForV2() goo.HandlerFunc {
+	return func(c *goo.Context) {
 		// Start timer
 		t := time.Now()
 		// if a server error occurred
@@ -164,17 +164,17 @@ func onlyForV2() gee.HandlerFunc {
 }
 
 func main() {
-	r := gee.New()
-	r.Use(gee.Logger()) // global midlleware
-	r.GET("/", func(c *gee.Context) {
-		c.HTML(http.StatusOK, "<h1>Hello Gee</h1>")
+	r := goo.New()
+	r.Use(goo.Logger()) // global midlleware
+	r.GET("/", func(c *goo.Context) {
+		c.HTML(http.StatusOK, "<h1>Hello goo</h1>")
 	})
 
 	v2 := r.Group("/v2")
 	v2.Use(onlyForV2()) // v2 group middleware
 	{
-		v2.GET("/hello/:name", func(c *gee.Context) {
-			// expect /hello/geektutu
+		v2.GET("/hello/:name", func(c *goo.Context) {
+			// expect /hello/gooktutu
 			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
 		})
 	}

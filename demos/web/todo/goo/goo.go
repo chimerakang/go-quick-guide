@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// HandlerFunc defines the request handler used by gee
+// HandlerFunc defines the request handler used by goo
 type HandlerFunc func(*Context)
 
 // Engine implement the interface of ServeHTTP
@@ -29,7 +29,7 @@ type (
 	}
 )
 
-// New is the constructor of gee.Engine
+// New is the constructor of goo.Engine
 func New() *Engine {
 	engine := &Engine{router: newRouter()}
 	engine.RouterGroup = &RouterGroup{engine: engine}

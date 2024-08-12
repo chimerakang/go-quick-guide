@@ -20,8 +20,8 @@ func main() {
 		c.HTML(http.StatusOK, "<h1>Hello Goo</h1>")
 	})
 	r.GET("/hello", func(c *goo.Context) {
-		// expect /hello?name=geektutu
-		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
+		// expect /hello?name=gootutu
+		c.String(http.StatusOK, "hello %s, password:%s,  you're at %s\n", c.Query("name"), c.Query("pwd"), c.Path)
 	})
 
 	r.POST("/login", func(c *goo.Context) {
