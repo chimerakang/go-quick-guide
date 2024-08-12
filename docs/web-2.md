@@ -40,7 +40,7 @@ c.JSON(http.StatusOK, gee.H{
 * 針對使用場景，封裝`*http.Request`和`http.ResponseWriter`的方法，簡化相關介面的調用，只是設計Context 的原因之一。對於框架來說，還需要支撐額外的功能。例如，將來解析動態路由/hello/:name，參數:name的值放在哪呢？再例如，框架需要支援中間件，那中間件產生的資訊放在哪呢？ Context 隨著每個請求的出現而產生，請求的結束而銷毀，和當前請求強相關的資訊都應由Context 承載。因此，設計Context 結構，擴展性和複雜性留在了內部，而對外簡化了介面。路由的處理函數，以及將要實現的中間件，參數都統一使用Context 實例， Context 就像一次會話的百寶箱，可以找到任何東西。
 
 ### 具體實現
-day2-context/gee/context.go
+
 ```go
 type H map[string]interface{}
 
