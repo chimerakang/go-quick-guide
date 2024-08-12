@@ -17,7 +17,7 @@ by [@chimerakang](https://github.com/chimerakang)
 封裝前
 ```go
 obj = map[string]interface{}{
-    "name": "geektutu",
+    "name": "gootutu",
     "password": "1234",
 }
 w.Header().Set("Content-Type", "application/json")
