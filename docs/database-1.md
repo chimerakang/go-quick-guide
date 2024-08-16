@@ -16,6 +16,7 @@ by [@chimerakang](https://github.com/chimerakang)
 * [MacOS](https://www.ioa.tw/macOS/MySQL.html)
 * [Docker(MacOS)](https://myapollo.com.tw/blog/docker-mysql/)
 * [Docker(Windows)](https://berglas.github.io/dest/articles/2020/12/learn_docker_2.html)
+* [docker-compose](https://github.com/chimerakang/docker-lamp)
 
 
 ## 建立使用者與資料庫
@@ -26,12 +27,17 @@ CREATE DATABASE demo CHARACTER SET utf8 COLLATE utf8_general_ci;
 ```
 建立帳號為 demo，密碼為 demo123
 ```
-GRANT ALL PRIVILEGES ON demo.* TO 'demo'@'%' IDENTIFIED BY 'demo123'  WITH GRANT OPTION;
+CREATE USER 'demo'@'%' IDENTIFIED BY 'demo123';
+
+GRANT ALL ON demo.* TO 'demo'@'%'  WITH GRANT OPTION;
+
+ALTER USER 'demo'@'%' IDENTIFIED WITH mysql_native_password BY 'demo123';
+
 FLUSH PRIVILEGES;
 ```
 
 ## 操作 mysql
-要透過程式語言操作資料庫，最常見的方法就是使用 `driver`，`golang` 原生有提供關於 sql 的抽象介面 `database/sql`，後來有人利用他封裝了 mysql 的 driver - `go-sql-driver`，三者的關係如下:
+要透過程式語言操作資料庫，最常見的方法就是使用 `driver`，`golang` 原生有提供關於 sql 的抽象介面 `database/sql`，後來有人利用他封裝了 `mysql` 的 `driver` - `go-sql-driver`，三者的關係如下:
 
 ![](./images/database-1.png)
 
@@ -61,11 +67,11 @@ const (
 ```
 再來我們將連線字串拼湊出來
 ```go
-conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
 ```
 之後透過 sql.Open 方法進行連線
 ```go
-db, err := sql.Open("mysql", conn)
+db, err := sql.Open("mysql", dsn)
 if err != nil {
     fmt.Println("開啟 MySQL 連線發生錯誤，原因為：", err)
     return
@@ -85,32 +91,39 @@ defer db.Close()
 連線的程式最終會像是這樣
 ```go
 package main
+
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/go-sql-driver/mysql"
 )
+
 const (
-	USERNAME = "demo1"
+	USERNAME = "demo"
 	PASSWORD = "demo123"
-	NETWORK = "tcp"
-	SERVER = "127.0.0.2"
-	PORT = 3306
+	NETWORK  = "tcp"
+	SERVER   = "127.0.0.1"
+	PORT     = 3306
 	DATABASE = "demo"
 )
+
 func main() {
-	conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+	conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
 	db, err := sql.Open("mysql", conn)
 	if err != nil {
-		fmt.Println("開啟 MySQL 連線發生錯誤，原因為：", err)
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
-    if err := db.Ping(); err != nil {
-        fmt.Println("資料庫連線錯誤，原因為：", err.Error())
+	fmt.Println("Connect to MySQL success")
+	if err := db.Ping(); err != nil {
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
-    defer db.Close()
+	defer db.Close()
+	fmt.Println("The End")
 }
+
 ```
 執行以上的程式如果沒有任何錯誤出現的話，代表已經順利連線到資料庫拉～
 
@@ -118,7 +131,7 @@ func main() {
 
 ## 建立 Table
 既然已經連線到資料庫了，那麼我們就可以開始對資料庫進行互動了，首先我們要先建立一個名為 `user` 的 `table`，建立的 SQL 如下
-```go
+```sql
 CREATE TABLE IF NOT EXISTS users(
 	id INT(4) PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	username VARCHAR(64),
@@ -134,28 +147,62 @@ func CreateTable(db *sql.DB) error {
         password VARCHAR(64)
 	); `
 	if _, err := db.Exec(sql); err != nil {
-		fmt.Println("建立 Table 發生錯誤:", err)
+		fmt.Printf("Create Table error:%v\n", err)
 		return err
 	}
-	fmt.Println("建立 Table 成功！")
+	fmt.Println("Create Table success")
 	return nil
 }
 ```
 建立完畢之後可以將 CreateTable 的方法於 main 方法呼叫，加入後 main 方法如下
 ```go
+package main
+
+import (
+	"database/sql"
+	"fmt"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+const (
+	USERNAME = "demo"
+	PASSWORD = "demo123"
+	NETWORK  = "tcp"
+	SERVER   = "127.0.0.1"
+	PORT     = 3306
+	DATABASE = "demo"
+)
+
+func CreateTable(db *sql.DB) error {
+	sql := `CREATE TABLE IF NOT EXISTS users(
+	id INT(4) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+        username VARCHAR(64),
+        password VARCHAR(64)
+	); `
+	if _, err := db.Exec(sql); err != nil {
+		fmt.Printf("Create Table error:%v\n", err)
+		return err
+	}
+	fmt.Println("Create Table success")
+	return nil
+}
+
 func main() {
 	conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
 	db, err := sql.Open("mysql", conn)
-	if err != nil {
-		fmt.Println("開啟 MySQL 連線發生錯誤，原因為：", err)
-		return
-	}
-	if err := db.Ping(); err != nil {
-        fmt.Println("資料庫連線錯誤，原因為：", err.Error())
-		return
-	}
 	defer db.Close()
+	if err != nil {
+		fmt.Printf("Connect to MySQL error:%v\n", err)
+		return
+	}
+	fmt.Println("Connect to MySQL success")
+	if err := db.Ping(); err != nil {
+		fmt.Printf("Connect to MySQL error:%v\n", err)
+		return
+	}
 	CreateTable(db)
+	fmt.Println("The End")
 }
 ```
 執行出來的結果如果輸出 建立 `Table` 成功！ 代表成功的建立 `Table` 了，我們可以透過任何資料庫管理工具查看結果是否正確。
@@ -167,31 +214,33 @@ insert INTO users(username,password) values('test','test');
 ```
 透過 Exec 的方法執行 insert 指令，Exec 的方法支援將 Value 抽出來作為變數，因此我們可以將程式改為以下
 ```go
-func InsertUser(DB *sql.DB, username, password string) error{
-	_,err := DB.Exec("insert INTO users(username,password) values(?,?)",username, password)
-	if err != nil{
-		fmt.Printf("建立使用者失敗，原因是：%v", err)
+func InsertUser(DB *sql.DB, username, password string) error {
+	_, err := DB.Exec("insert INTO users(username,password) values(?,?)", username, password)
+	if err != nil {
+		fmt.Printf("Creat User error：%v\n", err)
 		return err
 	}
-	fmt.Println("建立使用者成功！")
+	fmt.Println("Create User success")
 	return nil
 }
 ```
 建立完畢之後可以將 `InsertUser` 的方法於 main 方法呼叫，加入後 main 方法如下
 ```go
 func main() {
-	conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
-	db, err := sql.Open("mysql", conn)
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		fmt.Println("開啟 MySQL 連線發生錯誤，原因為：", err)
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
-    if err := db.Ping(); err != nil {
-        fmt.Println("資料庫連線錯誤，原因為：", err.Error())
+	fmt.Println("Connect to MySQL success")
+	if err := db.Ping(); err != nil {
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
 	defer db.Close()
 	InsertUser(db, "test", "test")
+	fmt.Println("The End")
 }
 ```
 執行出來的結果如果輸出 建立使用者成功！ 代表成功的新增資料了，我們可以透過任何資料庫管理工具查看結果是否正確
@@ -209,29 +258,32 @@ type User struct {
 	Password string
 }
 ```
-透過 Query 的方法執行 select 指令，Query 的方法支援將 Where 的值抽出來作為變數，因此我們可以將程式改為以下
+透過 `Query` 的方法執行 select 指令，Query 的方法支援將 Where 的值抽出來作為變數，因此我們可以將程式改為以下
 ```go
+// query user by user name
 func QueryUser(db *sql.DB, username string) {
 	user := new(User)
 	row := db.QueryRow("select * from users where username=?", username)
 	if err := row.Scan(&user.ID, &user.Username, &user.Password); err != nil {
-		fmt.Printf("映射使用者失敗，原因為：%v\n", err)
+		fmt.Printf("Reflect user error：%v\n", err)
 		return
 	}
-	fmt.Println("查詢使用者成功", *user)
+	fmt.Println("Query user success:", *user)
 }
+
 ```
 建立完畢之後可以將 QueryUser 的方法於 main 方法呼叫，加入後 main 方法如下
 ```go
 func main() {
-	conn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
-	db, err := sql.Open("mysql", conn)
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		fmt.Println("開啟 MySQL 連線發生錯誤，原因為：", err)
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
-    if err := db.Ping(); err != nil {
-        fmt.Println("資料庫連線錯誤，原因為：", err.Error())
+	fmt.Println("Connect to MySQL success")
+	if err := db.Ping(); err != nil {
+		fmt.Printf("Connect to MySQL error:%v\n", err)
 		return
 	}
 	defer db.Close()
@@ -260,13 +312,13 @@ SELECT user_name FROM users WHERE user_name = ? ;
 預處理過得語句在資料庫中會被存起來，資料庫會對該語句先作`檢查->剖析`, 作執行計畫的判斷跟語句優化，而後我們只要帶入變數資料，就能直接執行了
 
 ## 範例程式碼
-接下來的幾個小節裡面我們都將採用同一個資料庫表結構：資料庫 test，使用者表 userinfo，關聯使用者資訊表 userdetail。
+接下來的幾個小節裡面我們都將採用同一個資料庫表結構：資料庫 demo，使用者資料 userinfo，關聯使用者資訊表 userdetail。
 ```go
 CREATE TABLE `userinfo` (
     `uid` INT(10) NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(64) NULL DEFAULT NULL,
     `department` VARCHAR(64) NULL DEFAULT NULL,
-    `created` DATE NULL DEFAULT NULL,
+    `created_at` DATE NULL DEFAULT NULL,
     PRIMARY KEY (`uid`)
 );
 
@@ -282,78 +334,91 @@ CREATE TABLE `userdetail` (
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    //"time"
+	"database/sql"
+	"fmt"
 
-    _ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+const (
+	USERNAME = "demo"
+	PASSWORD = "demo123"
+	NETWORK  = "tcp"
+	SERVER   = "127.0.0.1"
+	PORT     = 3306
+	DATABASE = "demo"
 )
 
 func main() {
-    db, err := sql.Open("mysql", "astaxie:astaxie@/test?charset=utf8")
-    checkErr(err)
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+	db, err := sql.Open("mysql", dsn)
+	checkErr(err)
+	defer db.Close()
 
-    //插入資料
-    stmt, err := db.Prepare("INSERT userinfo SET username=?,department=?,created=?")
-    checkErr(err)
+	fmt.Println("Connect to MySQL success")
+	err = db.Ping()
+	checkErr(err)
 
-    res, err := stmt.Exec("astaxie", "研發部門", "2012-12-09")
-    checkErr(err)
+	//插入資料
+	stmt, err := db.Prepare("INSERT userinfo SET username=?,department=?,created_at=?")
+	checkErr(err)
 
-    id, err := res.LastInsertId()
-    checkErr(err)
+	res, err := stmt.Exec("chimera", "Develop", "2024-08-01")
+	checkErr(err)
 
-    fmt.Println(id)
-    //更新資料
-    stmt, err = db.Prepare("update userinfo set username=? where uid=?")
-    checkErr(err)
+	id, err := res.LastInsertId()
+	checkErr(err)
 
-    res, err = stmt.Exec("astaxieupdate", id)
-    checkErr(err)
+	fmt.Println(id)
+	//Update userinfo
+	stmt, err = db.Prepare("update userinfo set username=? where uid=?")
+	checkErr(err)
 
-    affect, err := res.RowsAffected()
-    checkErr(err)
+	res, err = stmt.Exec("chimera-update", id)
+	checkErr(err)
 
-    fmt.Println(affect)
+	affect, err := res.RowsAffected()
+	checkErr(err)
 
-    //查詢資料
-    rows, err := db.Query("SELECT * FROM userinfo")
-    checkErr(err)
+	fmt.Println(affect)
 
-    for rows.Next() {
-        var uid int
-        var username string
-        var department string
-        var created string
-        err = rows.Scan(&uid, &username, &department, &created)
-        checkErr(err)
-        fmt.Println(uid)
-        fmt.Println(username)
-        fmt.Println(department)
-        fmt.Println(created)
-    }
+	//Query userinfo
+	rows, err := db.Query("SELECT * FROM userinfo")
+	checkErr(err)
 
-    //刪除資料
-    stmt, err = db.Prepare("delete from userinfo where uid=?")
-    checkErr(err)
+	for rows.Next() {
+		var uid int
+		var username string
+		var department string
+		var created_at string
+		err = rows.Scan(&uid, &username, &department, &created_at)
+		checkErr(err)
+		fmt.Println(uid)
+		fmt.Println(username)
+		fmt.Println(department)
+		fmt.Println(created_at)
+	}
 
-    res, err = stmt.Exec(id)
-    checkErr(err)
+	//Delete userinfo by uid
+	stmt, err = db.Prepare("delete from userinfo where uid=?")
+	checkErr(err)
 
-    affect, err = res.RowsAffected()
-    checkErr(err)
+	res, err = stmt.Exec(id)
+	checkErr(err)
 
-    fmt.Println(affect)
+	affect, err = res.RowsAffected()
+	checkErr(err)
 
-    db.Close()
+	fmt.Println(affect)
 
 }
 
 func checkErr(err error) {
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 }
+
 ```
 Go 操作 Mysql 資料庫是很方便的。
 

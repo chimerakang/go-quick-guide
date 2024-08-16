@@ -49,12 +49,12 @@ SELECT TOP 10 * FROM TestTable WHERE id=12
 ## GORM
 用raw sql語法操作db跟用orm其實沒有什麼誰好誰不好，如果sql語法寫起來跟吃飯喝水一樣easy的話，不一定要用orm。如果sql語法沒寫的那麼精準，也不想常常被DBA手刀打下去的話，是可以考慮使用orm來滿足工作需求。
 
-Golang首推的ORM套件還是以 GORM為首選，
+Go首推的ORM套件還是以 GORM為首選，
 特點如下
 
 * 全功能ORM
 * 關聯(Has One，Has Many，Belongs To，Many To Many，多態，單表繼承)
-* Create，Save，Update，Delete，Find 中鉤子方法
+* Create，Save，Update，Delete，Find 中hook串接方法
 * 支持Preload、Joins的預加載
 * 事務，嵌套事務，Save Point，Rollback To Saved Point
 * Context，預編譯模式，DryRun 模式
@@ -76,31 +76,30 @@ package main
 import (
 	"fmt"
 	"time"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 const (
-	UserName     string = "root"
-	Password     string = "password"
-	Addr         string = "127.0.0.1"
-	Port         int    = 3306
-	Database     string = "test"
-	MaxLifetime  int    = 10
-	MaxOpenConns int    = 10
-	MaxIdleConns int    = 10
+	USERNAME         = "demo"
+	PASSWORD         = "demo123"
+	NETWORK          = "tcp"
+	SERVER           = "127.0.0.1"
+	PORT             = 3306
+	DATABASE         = "demo"
+	MaxLifetime  int = 10
+	MaxOpenConns int = 10
+	MaxIdleConns int = 10
 )
 
-func main() { 
-	//組合sql連線字串
-	addr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True", UserName, Password, Addr, Port, Database)    
-	//連接MySQL
-	conn, err := gorm.Open(mysql.Open(addr), &gorm.Config{})
-	if err != nil {
-		fmt.Println("connection to mysql failed:", err)
-		return
-	}  
-    //設定ConnMaxLifetime/MaxIdleConns/MaxOpenConns
+func main() {
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s?charset=utf8&parseTime=True", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
+
+	conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+	checkErr(err)
+	// defer conn.Close()
 	db, err1 := conn.DB()
 	if err1 != nil {
 		fmt.Println("get db failed:", err)
@@ -108,20 +107,85 @@ func main() {
 	}
 	db.SetConnMaxLifetime(time.Duration(MaxLifetime) * time.Second)
 	db.SetMaxIdleConns(MaxIdleConns)
-	db.SetMaxOpenConns(MaxOpenConns)	
+	db.SetMaxOpenConns(MaxOpenConns)
+
+	fmt.Println("Connect to MySQL success")
+	err = db.Ping()
+	checkErr(err)
+
+	//插入資料
+	stmt, err := db.Prepare("INSERT userinfo SET username=?,department=?,created_at=?")
+	checkErr(err)
+
+	res, err := stmt.Exec("chimera", "Develop", "2024-08-01")
+	checkErr(err)
+
+	id, err := res.LastInsertId()
+	checkErr(err)
+
+	fmt.Println(id)
+	//Update userinfo
+	stmt, err = db.Prepare("update userinfo set username=? where uid=?")
+	checkErr(err)
+
+	res, err = stmt.Exec("chimera-update", id)
+	checkErr(err)
+
+	affect, err := res.RowsAffected()
+	checkErr(err)
+
+	fmt.Println(affect)
+
+	//Query userinfo
+	rows, err := db.Query("SELECT * FROM userinfo")
+	checkErr(err)
+
+	for rows.Next() {
+		var uid int
+		var username string
+		var department string
+		var created string
+		err = rows.Scan(&uid, &username, &department, &created)
+		checkErr(err)
+		fmt.Println(uid)
+		fmt.Println(username)
+		fmt.Println(department)
+		fmt.Println(created)
+	}
+
+	//Delete userinfo by uid
+	stmt, err = db.Prepare("delete from userinfo where uid=?")
+	checkErr(err)
+
+	res, err = stmt.Exec(id)
+	checkErr(err)
+
+	affect, err = res.RowsAffected()
+	checkErr(err)
+
+	fmt.Println(affect)
+
 }
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 ```
 
 ### model的定義
-對gorm來說，model struct定義好，gorm才能進行mapping，mapping表請參考[models](https://gorm.io/zh_CN/docs/models.html)
+對`gorm`來說，`model struct`定義好，`gorm`才能進行`mapping`，`mapping`表請參考[models](https://gorm.io/zh_CN/docs/models.html)
 ```go
-type User struct {
-	ID        int64     `gorm:"type:bigint(20) NOT NULL auto_increment;primary_key;" json:"id,omitempty"`
-	Username  string    `gorm:"type:varchar(20) NOT NULL;" json:"username,omitempty"`
-	Password  string    `gorm:"type:varchar(100) NOT NULL;" json:"password,omitempty"`
-	Status    int32     `gorm:"type:int(5);" json:"status,omitempty"`
-	CreatedAt time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"created_at,omitempty"`
-	UpdatedAt time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"updated_at,omitempty"`
+type Userinfo struct {
+	ID         int64     `gorm:"type:bigint(20) NOT NULL auto_increment;primary_key;" json:"id,omitempty"`
+	Username   string    `gorm:"type:varchar(20) NOT NULL;" json:"username,omitempty"`
+	Password   string    `gorm:"type:varchar(100) NOT NULL;" json:"password,omitempty"`
+	Department string    `gorm:"type:varchar(100) NOT NULL;" json:"department,omitempty"`
+	Status     int32     `gorm:"type:int(5);" json:"status,omitempty"`
+	CreatedAt  time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"created_at,omitempty"`
+	UpdatedAt  time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"updated_at,omitempty"`
 }
 ```
 
@@ -138,52 +202,51 @@ import (
 )
 
 const (
-	UserName     string = "root"
-	Password     string = "password"
-	Addr         string = "127.0.0.1"
-	Port         int    = 3306
-	Database     string = "test"
-	MaxLifetime  int    = 10
-	MaxOpenConns int    = 10
-	MaxIdleConns int    = 10
+	USERNAME         = "demo"
+	PASSWORD         = "demo123"
+	NETWORK          = "tcp"
+	SERVER           = "127.0.0.1"
+	PORT             = 3306
+	DATABASE         = "demo"
+	MaxLifetime  int = 10
+	MaxOpenConns int = 10
+	MaxIdleConns int = 10
 )
 
-type User struct {
-	ID        int64     `gorm:"type:bigint(20) NOT NULL auto_increment;primary_key;" json:"id,omitempty"`
-	Username  string    `gorm:"type:varchar(20) NOT NULL;" json:"username,omitempty"`
-	Password  string    `gorm:"type:varchar(100) NOT NULL;" json:"password,omitempty"`
-	Status    int32     `gorm:"type:int(5);" json:"status,omitempty"`
-	CreatedAt time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"created_at,omitempty"`
-	UpdatedAt time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"updated_at,omitempty"`
+type Userinfo struct {
+	ID         int64     `gorm:"type:bigint(20) NOT NULL auto_increment;primary_key;" json:"id,omitempty"`
+	Username   string    `gorm:"type:varchar(20) NOT NULL;" json:"username,omitempty"`
+	Password   string    `gorm:"type:varchar(100) NOT NULL;" json:"password,omitempty"`
+	Department string    `gorm:"type:varchar(100) NOT NULL;" json:"department,omitempty"`
+	Status     int32     `gorm:"type:int(5);" json:"status,omitempty"`
+	CreatedAt  time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"created_at,omitempty"`
+	UpdatedAt  time.Time `gorm:"type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP" json:"updated_at,omitempty"`
 }
 
 func main() {
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s?charset=utf8&parseTime=True", USERNAME, PASSWORD, NETWORK, SERVER, PORT, DATABASE)
 
-	//組合sql連線字串
-	addr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True", UserName, Password, Addr, Port, Database)
-	//連接MySQL
-	conn, err := gorm.Open(mysql.Open(addr), &gorm.Config{})
-	if err != nil {
-		fmt.Println("connection to mysql failed:", err)
-		return
-	}
+	conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
+	checkErr(err)
+	// defer conn.Close()
 	db, err1 := conn.DB()
 	if err1 != nil {
 		fmt.Println("get db failed:", err)
 		return
 	}
-
 	db.SetConnMaxLifetime(time.Duration(MaxLifetime) * time.Second)
 	db.SetMaxIdleConns(MaxIdleConns)
 	db.SetMaxOpenConns(MaxOpenConns)
-    
-    //產生table
-	conn.Debug().AutoMigrate(&User{})
-    //判斷有沒有table存在
-    migrator := conn.Migrator()
-    has := migrator.HasTable(&User{})
-	//has := migrator.HasTable("GG")
+	fmt.Println("Connect to MySQL success")
+	err = db.Ping()
+	checkErr(err)
+
+	// create table by auto migrate
+	conn.Debug().AutoMigrate(&Userinfo{})
+	// check table
+	migrator := conn.Migrator()
+	has := migrator.HasTable(&Userinfo{})
 	if !has {
 		fmt.Println("table not exist")
 	}
@@ -214,8 +277,8 @@ conn.Debug().Select("UserName", "Password").Create(&user)
 conn.Debug().Omit("status").Create(&user)
 //執行結果：INSERT INTO `users` (`user_name`,`password`,`created_at`,`updated_at`,`id`) VALUES ('tester','12333','2020-09-30 14:00:46.006','2020-09-30 14:00:46.006',10)，ID自己產生於語法中
 
-//BATCH INSERT，v2版新增的特點
-    users := []User{{UserName: "tester", Password: "12333", Status: 1}, {UserName: "gger", Password: "132333", Status: 1}, {UserName: "ininder", Password: "12333", Status: 1}}
+//BATCH INSERT
+users := []User{{UserName: "tester", Password: "12333", Status: 1}, {UserName: "gger", Password: "132333", Status: 1}, {UserName: "ininder", Password: "12333", Status: 1}}
 
 result := conn.Debug().Create(&users)
 if result.Error != nil {
