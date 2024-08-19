@@ -1,0 +1,108 @@
+basePath: /
+definitions:
+  main.Todo:
+    properties:
+      done:
+        type: boolean
+      text:
+        type: string
+    type: object
+host: localhost:9999
+info:
+  contact: {}
+  description: This is a simple todo list API
+  title: Todo API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Get a list of all todos
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Todo'
+            type: array
+      summary: Get all todos
+  /add:
+    post:
+      consumes:
+      - application/json
+      description: Add a new todo to the list
+      parameters:
+      - description: Todo object
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/main.Todo'
+      produces:
+      - application/json
+      responses:
+        "303":
+          description: See Other
+          schema:
+            type: string
+      summary: Add a new todo
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and set a JWT token
+      parameters:
+      - description: Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "303":
+          description: See Other
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: User login
+  /logout:
+    get:
+      description: Logout the current user
+      produces:
+      - application/json
+      responses:
+        "303":
+          description: See Other
+          schema:
+            type: string
+      summary: User logout
+  /toggle:
+    post:
+      consumes:
+      - application/json
+      description: Toggle the done status of a todo
+      parameters:
+      - description: Index of the todo
+        in: formData
+        name: index
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "303":
+          description: See Other
+          schema:
+            type: string
+      summary: Toggle todo status
+swagger: "2.0"

@@ -1,0 +1,165 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a simple todo list API",
+        "title": "Todo API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:9999",
+    "basePath": "/",
+    "paths": {
+        "/": {
+            "get": {
+                "description": "Get a list of all todos",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all todos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Todo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/add": {
+            "post": {
+                "description": "Add a new todo to the list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Add a new todo",
+                "parameters": [
+                    {
+                        "description": "Todo object",
+                        "name": "todo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Todo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "303": {
+                        "description": "See Other",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Authenticate a user and set a JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "303": {
+                        "description": "See Other",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "get": {
+                "description": "Logout the current user",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "User logout",
+                "responses": {
+                    "303": {
+                        "description": "See Other",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/toggle": {
+            "post": {
+                "description": "Toggle the done status of a todo",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Toggle todo status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Index of the todo",
+                        "name": "index",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "303": {
+                        "description": "See Other",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.Todo": {
+            "type": "object",
+            "properties": {
+                "done": {
+                    "type": "boolean"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
