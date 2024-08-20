@@ -129,13 +129,18 @@ func getTodos(c *gin.Context) {
 
 // @Summary Add a new todo
 // @Description Add a new todo to the list
-// @Accept json
-// @Produce json
-// @Param todo body Todo true "Todo object"
+// @Accept x-www-form-urlencoded
+// @Produce html
+// @Param todo formData string true "Todo text"
 // @Success 303 {string} string "See Other"
+// @Failure 400 {object} object{error=string} "Bad Request"
 // @Router /add [post]
 func addTodo(c *gin.Context) {
 	text := c.PostForm("todo")
+	if text == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Todo text cannot be empty"})
+		return
+	}
 	todo := Todo{Text: text, Done: false}
 	todos = append(todos, todo)
 	c.Redirect(http.StatusSeeOther, "/")
@@ -184,20 +189,24 @@ func logout(c *gin.Context) {
 func login(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
+	fmt.Printf("username:%s, password:%s\n", username, password)
 
-	if (username == "employee" && password == "password") || (username == "senior" && password == "password") {
+	if (username == "employee" && password == "password") ||
+		(username == "senior" && password == "password") {
 		tokenString, err := createToken(username)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Error creating token")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating token"})
 			return
 		}
 
 		loggedInUser = username
-		fmt.Printf("Token created: %s\n", tokenString)
+
+		// Set cookie
 		c.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
+		fmt.Printf("Token created: %s\n", tokenString)
 		c.Redirect(http.StatusSeeOther, "/")
 	} else {
-		c.String(http.StatusUnauthorized, "Invalid credentials")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 	}
 }
 

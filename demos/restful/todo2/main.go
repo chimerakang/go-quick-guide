@@ -28,7 +28,7 @@ func main() {
 	router.Static("/static", "./static")
 	router.LoadHTMLGlob("templates/*")
 
-	router.GET("/", func(c *gin.Context) {
+	router.GET("/", authenticateMiddleware, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"Todos":    todos,
 			"LoggedIn": loggedInUser != "",

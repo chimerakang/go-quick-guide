@@ -30,28 +30,34 @@ paths:
   /add:
     post:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: Add a new todo to the list
       parameters:
-      - description: Todo object
-        in: body
+      - description: Todo text
+        in: formData
         name: todo
         required: true
-        schema:
-          $ref: '#/definitions/main.Todo'
+        type: string
       produces:
-      - application/json
+      - text/html
       responses:
         "303":
           description: See Other
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
       summary: Add a new todo
   /login:
     post:
       consumes:
-      - application/json
-      description: Authenticate a user and set a JWT token
+      - application/x-www-form-urlencoded
+      description: Authenticate a user and return a JWT token
       parameters:
       - description: Username
         in: formData
