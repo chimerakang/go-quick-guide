@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - "mynet"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.stage
+    ports:
+      - "9999:9999"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASS=secret
+      - DB_NAME=gotodo
+      - DB_PORT=3306
+      - PORT=9999
+    depends_on:
+      - mysql
+    networks:
+      - "mynet"
+    restart: on-failure
+
+  mysql:
+    platform: "linux/x86_64"
+    image: "mysql:5.7"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: gotodo
+    ports:
+      - "3306:3306"
+    networks:
+      - "mynet"
+    volumes:
+      - mysql_data:/var/lib/mysql      
+
+networks:
+  mynet:
+    driver: "bridge"
+volumes:
+  mysql_data:    

@@ -1,0 +1,18 @@
+# stage 0
+FROM alpine:3.14 AS base
+RUN apk add --no-cache curl wget
+
+# stage 1
+FROM golang:1.19.2 AS go-builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod tidy
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
+
+# stage 2
+FROM base
+COPY --from=go-builder /app/main /main
+COPY views/ /views
+EXPOSE 9999
+CMD ["/main"]
