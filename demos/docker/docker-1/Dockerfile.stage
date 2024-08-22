@@ -1,0 +1,15 @@
+# stage 0
+FROM alpine AS base
+RUN apk add --no-cache curl wget
+
+# stage 1
+FROM golang:1.9.2 AS go-builder
+WORKDIR /go
+COPY *.go /go/
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
+
+# stage 2
+FROM base
+COPY --from=go-builder /go/main /main
+EXPOSE 9999
+CMD ["/main"]

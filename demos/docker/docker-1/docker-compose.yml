@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  web:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+  api:
+    build:
+      context: .
+      # dockerfile: dockerfile.xxx
+      dockerfile: Dockerfile.stage
+    ports:
+      - "9999:9999"
