@@ -191,4 +191,4 @@ $ resp: gRPC HTTP Server
 你以為這個方案就萬能了嗎，不行。 Envoy Proxy 的支援並不完美，無法同時監聽一個連接埠的兩種流量
 
 ---
-## Next: [對RPC 方法做自訂認證](./grpc-5.md)
+## Next: [對RPC 方法做自訂認證](./grpc5.md)

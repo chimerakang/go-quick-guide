@@ -361,4 +361,4 @@ $ resp: gRPC Server
 在本章節，我們分別對Protobuf、gRPC Client/Server 都進行了介紹。希望你結合文中講述內容再寫一個Demo 進行深入了解，一定會更棒
 
 ---
-## Next: [TLS 證書認證](./grpc-2.md)
+## Next: [TLS 證書認證](./grpc2.md)
